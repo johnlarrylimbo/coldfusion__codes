@@ -1,0 +1,442 @@
+<cfset student_profile = event.getValue('student_profile') />
+<cfset student_degree = event.getValue('student_degree') />
+<cfset academic_year_current = event.getValue('academic_year_current') />
+<cfset semester_current = event.getValue('semester_current') />
+<cfset department = event.getValue('department') />
+<cfset degree_program_by_id = event.getValue('degree_program_by_id') />
+<!--- <cfset section = event.getValue('section') /> --->
+
+<cfset variables.form_name = "uic_iis_form">
+<cfprocessingdirective suppresswhitespace="Yes"> 
+<cfoutput>
+
+<!---<script type="text/javascript">
+  function ajaxed_process(url) {
+    var params = $(url).attr("href");
+    params = params.split("?");
+    $.ajax({
+        type: 'POST',
+        url: params[0],
+        data: params[1],
+        success: function(){
+          //alert("Area deficiency has been successfully updated!");
+          location.reload(true);
+        }
+    });
+  }
+</script>
+
+<script type="text/javascript">
+function set_loaded_course_section () {
+  var section_id = $('##section_id').val();
+  if (section_id != 0) {
+    window.location.href ="#myself##xfa.set_loaded_course_section#&section_id=" + section_id + "&student_id=" + #student_profile.student_id#;
+  }
+}
+</script>--->
+
+<!--- <cfif isDefined("FORM.section_id")>
+  <cfcookie name="section_id" value="#FORM.section_id#" />
+<cfelse>
+  <cfcookie name="section_id" value="0" />
+</cfif> --->
+
+
+<cffunction
+    name="reSplit"
+    access="public"
+    returntype="array"
+    output="false"
+    hint="I split the given string using the given Java regular expression.">
+    <!--- Define arguments. --->
+    <cfargument
+        name="regex"
+        type="string"
+        required="true"
+        hint="I am the regular expression being used to split the string."
+        />
+
+    <cfargument
+        name="value"
+        type="string"
+        required="true"
+        hint="I am the string being split."
+        />
+    <cfset var local = {} />
+
+    <cfset local.parts = javaCast( "string", arguments.value ).split(
+        javaCast( "string", arguments.regex ),
+        javaCast( "int", -1 )
+        ) />
+    <cfset local.result = [] />
+
+    <cfloop
+        index="local.part"
+        array="#local.parts#">
+
+        <cfset arrayAppend( local.result, local.part ) />
+
+    </cfloop>
+
+    <!--- Return the result. --->
+    <cfreturn local.result />
+</cffunction>
+
+<cfif isDefined("FORM.load_subject")>
+<cfset class_id = reSplit( ",", FORM.class_id ) />
+<cfloop index = "class_id_element" list = "#FORM.class_id#">  
+  <cfstoredproc procedure="pr_lw3_class_by_id_sel" datasource="#request.dsn#">
+    <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@class_id" value="#class_id_element#" null="no">
+    <cfprocresult name="class">
+  </cfstoredproc>
+
+  <cfstoredproc procedure="pr_lw3_loaded_course_check_exist_by_id" datasource="#request.dsn#">
+    <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@student_id" value="#student_profile.student_id#" null="no">
+    <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@class_id" value="#class.class_id#" null="no">
+    <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@class_id" value="#class.department_id#" null="no">
+    <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@class_id" value="#class.semester_id#" null="no">
+    <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@class_id" value="#class.academic_year_id#" null="no">
+    <cfprocparam type="In" cfsqltype="cf_sql_varchar" dbvarname="@class_id" value="#class.time_start#" null="no">
+    <cfprocparam type="In" cfsqltype="cf_sql_varchar" dbvarname="@class_id" value="#class.time_end#" null="no">
+    <cfprocresult name="check_result">
+  </cfstoredproc>
+
+  <!--- </cfloop> --->
+  <!--- <cfif check_result.count_result EQ 0> --->
+    
+  <cfstoredproc procedure="pr_lw3_student_course_load" datasource="#request.dsn#">
+      <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@class_id" value="#class.class_id#" null="no">
+      <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@student_id" value="#student_profile.student_id#" null="no">
+      <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@semester_id" value="#semester_current.semester_id#" null="no">
+      <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@academic_year_id" value="#academic_year_current.academic_year_id#" null="no">
+      <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@n_sem" value="#semester_current.n_sem#" null="no">
+      <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@department_id" value="#degree_program_by_id.department_id#" null="no">
+      <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@year_level_id" value="#student_profile.year_level_id#" null="no">
+  </cfstoredproc>
+  <!--- Set error value to variable log_1 --->
+  <cfset log = "Added new subject to table student_enrolled_course(cid=" & #class.class_id# & ", sid=, " & #student_profile.student_id# & ", sem=" & #semester_current.semester_id# & ", ay=" & #academic_year_current.academic_year_id# & " )" />
+
+  <!--- Execute pr_account_log_ins stored procedure --->
+    <cfstoredproc procedure="pr_lw3_account_log_ins" datasource="#request.dsn#">
+      <cfprocparam type="In" cfsqltype="CF_SQL_numeric" dbvarname="@account_id" null="no" value="#request.session.account.account_id#">
+      <cfprocparam type="In" cfsqltype="CF_SQL_VARCHAR" dbvarname="@description" null="no" value="#log#">
+      <cfprocparam type="in" dbvarname="@ip" value="#cgi.REMOTE_ADDR#" cfsqltype="CF_SQL_VARCHAR" />
+    </cfstoredproc>
+    <!--- </cfif> --->
+    </cfloop>
+    <!--- <cfif check_result.count_result GT 0>
+    <script type="text/javascript">
+      alert("Failed to load subject. Time Conflict!!!");
+    </script>
+    <cfelse> --->
+      <cfif student_profile.department_id EQ 2>
+        <cfstoredproc procedure="pr_lw3_student_enrolled_character_ins" datasource="#request.dsn#">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@student_id" value="#student_profile.student_id#" null="no">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@academic_year_id" value="#academic_year_current.academic_year_id#" null="no">
+        </cfstoredproc>
+        <cfstoredproc procedure="pr_lw3_basic_education_student_attendance_ins" datasource="#request.dsn#">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@student_id" value="#student_profile.student_id#" null="no">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@academic_year_id" value="#academic_year_current.academic_year_id#" null="no">
+        </cfstoredproc>
+        <cfstoredproc procedure="pr_lw3_student_section_ins" datasource="#request.dsn#">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@student_id" value="#student_profile.student_id#" null="no">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@academic_year_id" value="#academic_year_current.academic_year_id#" null="no">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@semester_id" value="0" null="no">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@section_offering_id" value="#class.section_offering_id#" null="no">
+        </cfstoredproc>
+      <cfelseif student_profile.department_id EQ 3>
+        <cfstoredproc procedure="pr_lw3_student_section_ins" datasource="#request.dsn#">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@student_id" value="#student_profile.student_id#" null="no">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@academic_year_id" value="#academic_year_current.academic_year_id#" null="no">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@semester_id" value="0" null="no">
+          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@section_offering_id" value="#class.section_offering_id#" null="no">
+        </cfstoredproc>
+      </cfif>
+      
+    
+    
+      <cflocation url="#myself##xfa.view_student_courses#&student_id=#student_profile.student_id#&department_id=#degree_program_by_id.department_id#&semester_id=#semester_current.semester_id#&academic_year_id=#academic_year_current.academic_year_id#" addtoken="false" />
+  <!--- </cfif> --->
+</cfif>
+
+
+<!--- <cfoutput> --->
+<div class="wrapper">
+  <div class="module-name"><br></div>
+    <table align="center" width="80%">
+      <tr><td colspan="4" align="left"><h2>Load Student Courses</h2></td></tr>
+      <tr><td colspan="4" align="left">&nbsp;</td></tr>
+      <tr>
+        <td colspan="2">
+          <div style="float:left; width:160px;" class="margt10 margr10 margl10 fs12">
+            <style>
+              li {list-style:none;}
+              .menu img {padding-left:10px; margin-top:10px; margin-bottom:10px;}
+              ul##advisory_menu {padding-left:20px;}
+            </style>
+            <div class="menu">
+              <img src="images/checklist.png" width="160" height="230" />
+              <ul id="advisory_menu" style="text-align:left;">
+                <li>&raquo; <a href="#myself##xfa.view_loaded_student_courses#&student_id=#student_profile.student_id#">View Loaded Courses</a></li>
+                <li>&raquo; <a href="#myself##xfa.student_list#">Search New Student</a></li>
+            </ul>
+            </div>
+          </div>
+          <div style="float:left; width:15px; height:260px" class="marg10 rcbg"></div>
+          <div style="float:left; margin-top:10px; width: 79%;">
+            <div class="res_td" style="float:left;margin-bottom:5px;width:100%">
+              <table width="100%">
+                <tr style="font-weight:normal; color:##000;height: 20px;">
+                  <cfset image = ExpandPath( "./" ) & "images\100x102\#student_profile.student_number#.jpg" />
+                  <cfif fileExists(image)>
+                    <td align="center" width="15%" valign="top" rowspan="5" style="width: 91px;text-align: left;">
+                      <img src="http://sis.uic.edu.ph/images/100x102/#student_profile.student_number#.jpg" style="border-radius: 50%; width:71px;"  class="page_photo"/>
+                    </td>
+                  <cfelse>
+                    <td align="center" width="15%" valign="top" rowspan="3">
+                      <img src="http://sis.uic.edu.ph/images/avatar_uic_logo.png" style="border-radius: 50%; width:71px;" />
+                    </td>
+                  </cfif>
+                  <td align="left" width="15%">ID Number</td>
+                  <td align="left" width="3%">:</td>
+                  <td align="left" colspan="3">#student_profile.student_number#</td>
+                </tr>
+                <tr style="font-weight:normal; color:##000;height: 20px;">
+                  <td align="left">Name</td>
+                  <td align="left">:</td>
+                  <td align="left" colspan="3">#student_profile.lastname#, #student_profile.firstname# #LEFT(student_profile.middlename, 1)#.</td>
+                </tr>
+                <tr style="font-weight:normal; color:##000;height: 20px;">
+                  <td align="left">Degree Program</td>
+                  <td align="left">:</td>
+                  <td align="left">#degree_program_by_id.degree_program_label#</td>
+                </tr>
+                <tr>
+                  <td colspan="4"><hr class="hr_div"></td>
+                </tr>
+                <tr style="font-weight:normal; color:##000;height: 20px;">
+                  <td colspan="4" align="left">
+                    <form action="" name="#variables.form_name#" id="#variables.form_name#" method="post" onsubmit="return ajaxed_input_form (this);">
+                      <cfstoredproc procedure="pr_lw3_section_offering_load_by_department_id_sel" datasource="#request.dsn#">
+                        <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@department_id" value="#degree_program_by_id.department_id#" null="no">
+                        <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@academic_year_id" value="#request.session.academic_year.academic_year_id#" null="no">
+                        <cfif degree_program_by_id.department_id EQ 2>
+                          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@semester_id" value="0" null="no">
+                        <cfelse>
+                          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@semester_id" value="#semester_current.semester_id#" null="no">
+                        </cfif>
+                        <cfprocresult name="section">
+                      </cfstoredproc>
+                      <select name="section_id" id="section_id" onchange="this.form.submit();" style="float:left;">
+                        <option value="0">Select Section</option>
+                        <cfloop query="section">
+                          <cfif isDefined('FORM.section_id')>
+                            <option value="#section.section_offering_id#" <cfif FORM.section_id EQ section.section_offering_id>selected</cfif>>
+                              #section.section_label#
+                            </option>
+                          <cfelse>
+                            <option value="#section.section_offering_id#">#section.section_label#</option>
+                          </cfif>
+                        </cfloop>
+                      </select>
+                    </form>
+                  </td>
+                </tr>
+                <tr style="font-weight:normal; color:##000;height: 20px;">
+                  <td colspan="4" align="left"><br />
+                  <form action="" name="#variables.form_name#" id="#variables.form_name#" method="post" onsubmit="return ajaxed_input_form (this);">
+                    <table width="100%" align="center">
+                      <tr style="height:26px;">
+                        <th width="5%" align="center" class="th_data_tbl_head">
+                          <input type="checkbox" value="" id="selectAllCheckbox" onclick="toggle2(this)"/>
+                        </th>
+                        <th width="10%" align="center" class="th_data_tbl_head">Code</th>
+                        <th width="30%" align="center" class="th_data_tbl_head">Title</th>
+                        <th width="8%" align="center" class="th_data_tbl_head">Unit</th>
+                        <th width="10%" align="center" class="th_data_tbl_head">Instructor</th>
+                        <th width="20%" align="center" class="th_data_tbl_head">Schedule</th>
+                        <th width="10%" align="center" class="th_data_tbl_head">Slot</th>
+                      </tr>
+                      <cfif isDefined("FORM.section_id")>
+                        <cfcookie name="section_id" value="#FORM.section_id#" />
+                      <cfstoredproc procedure="pr_lw3_class_by_section_offering_id_sel2" datasource="#request.dsn#">
+                        <!--- <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@academic_year_id" value="#academic_year_current.academic_year_id#" null="no">
+                        <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@semester_id" value="#semester_current.semester_id#" null="no"> --->
+                        <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@section_id" value="#FORM.section_id#" null="no">
+                          <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@student_id" value="#student_profile.student_id#" null="no">
+                         <cfprocresult name="section">
+                      </cfstoredproc>
+
+                        <cfif section.recordCount EQ 0>
+                          <tr><td align="left" colspan="6">&nbsp;</td></tr>
+                          <tr>
+                            <td align="center" colspan="6">#required_msg5#</td>
+                          </tr>
+                        <cfelse>
+                          <cfloop query="section">
+                            <cfstoredproc procedure="pr_lw3_class_by_section_offering_id_student_count_sel" datasource="#request.dsn#">
+                            <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@class_id" value="#section.class_id#" null="no">
+                             <cfprocresult name="student_count">
+                          </cfstoredproc>
+                            <tr style="border-bottom: 1px solid ##e6e6e6; font-weight:normal; color:##000;">
+                              <td align="center">
+                                <input type="hidden" name="section_offering_#section.section_offering_id#" value="#section.section_offering_id#" />
+                                <cfif section.maximum_size NEQ student_count.student_count>
+                                  <input type="checkbox" id="class_id" name="class_id" value="#section.class_id#"/>
+                                <cfelse>
+                                  <input type="checkbox" id="class_id" name="class_id" value="#section.class_id#" disabled="disabled"/>
+                                </cfif>
+                                <!--- <a href="#myself##xfa.save_student_class#&class_id=#section.class_id#&student_id=#student_profile.student_id#&academic_year_id=#academic_year_current.academic_year_id#&department_id=#degree_program_by_id.department_id#&time_start=#section.time_start#&time_end=#section.time_end#&section_id=#section.section_offering_id#"><img id="#section.section_offering_id#_#section.class_id#" src="images/check.png" width="13" height="13"/></a> --->
+                                <input type="hidden" id="academic_year_id" name="academic_year_id" value="#academic_year_current.academic_year_id#"/>
+                                <input type="hidden" id="time_start" name="time_start" value="#section.time_start#"/>
+                                <input type="hidden" id="time_end" name="time_end" value="#section.time_end#"/>
+                                <cfif student_profile.department_id EQ 2>
+                                  <input type="hidden" id="semester_id" name="semester_id" value="0"/>
+                                <cfelse>
+                                  <input type="hidden" id="semester_id" name="semester_id" value="#semester_current.semester_id#"/>
+                                </cfif>
+                              </td>
+                              <td align="left">#section.class_code#</td>
+                              <td align="left">#section.title#</td>
+                              <td align="center">#section.duration_unit#</td>
+                              <td align="center">#section.subject_teacher#</td>
+                              <td align="center">
+                                <cfif section.time_start EQ '' AND section.time_end EQ ''>
+                                <cfelse>
+                                  #TimeFormat(section.time_start, "hh:mm tt")# - #TimeFormat(section.time_end, "hh:mm tt")#
+                                </cfif>
+                              </td>
+                              <cfset remaining_slot = section.maximum_size-student_count.student_count />
+                              <td align="center">#remaining_slot# [ <cfif section.maximum_size EQ student_count.student_count><span class="student_load">Full</span><cfelseif  student_count.student_count LT section.maximum_size AND student_count.student_count GTE (section.maximum_size - 5)><span class="student_load">Critical</span><cfelseif student_count.student_count LT (section.maximum_size - 5)><span class="student_load_grn">Open</span></cfif> ]</td>
+                            </tr>
+                          </cfloop>
+                          <tr>
+                                    <td colspan="7"><hr class="hr_div"></td>
+                                  </tr>
+                                  <tr style="border-bottom: 0px solid ##e6e6e6; font-weight:normal; color:##000;">
+                                    <td colspan="7">
+                                      <div class="isntruction_div">
+                                        <p class="head_p">INSTRUCTION:</p>
+                                        <p class="p_content">1) Click <b>"Load Student Subject(s)"</b> to remove selected subject.</p>
+                                        <p class="p_content">2) Click <b>"Cancel"</b> to abort this process</p>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                          <td colspan="7">&nbsp;</td>
+                        </tr>
+                          <tr>
+                            <td align="left" colspan="5">
+                              <input type="submit" style="border:1px solid green; padding:3px 20px; background-color:##609946; 
+                        color:##FFFFFF;" value="Load Student Subject(s)" id="#variables.form_name#_submit" class="form_submit_button" name="load_subject">
+                              <input type="button" style="border:1px solid green; padding:3px 20px; background-color:##609946; 
+    color:##FFFFFF;" value="Cancel" id="#variables.form_name#_cancel" name="Cancel" onclick="window.location='#myself##xfa.view_loaded_student_courses#&student_id=#student_profile.student_id#';return false;'">
+                            </td>
+                          </tr>
+                        </cfif>
+                      <cfelse>
+                      <tr><td align="left" colspan="6">&nbsp;</td></tr>
+                      <tr style="font-weight:normal; color:##000;">
+                        <td align="center" colspan="6">#required_msg4#</td>
+                      </tr>
+                      </cfif>
+                    </table>
+                    </form>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <!--- 
+      <table align="center" width="80%">
+      <tr>
+        <td align="left">
+          <form action="" name="#variables.form_name#" id="#variables.form_name#" method="post" onsubmit="return
+            <div class="div_left" style="width: 100%;">
+             </div>
+        </td>
+      </tr>
+      <tr>
+        <td align="left" colspan="4">
+          <div class="div_right" style="overflow:scroll; height:328px">
+            <table width="100%">
+              <cfif isDefined("FORM.section_id")>
+              <cfstoredproc procedure="pr_lw3_class_by_section_offering_id_sel" datasource="#request.dsn#">
+                <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@academic_year_id" value="#academic_year_current.academic_year_id#" null="no">
+                <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@semester_id" value="#semester_current.semester_id#" null="no">
+                <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@section_id" value="#FORM.section_id#" null="no">
+                  <cfprocparam type="In" cfsqltype="cf_sql_numeric" dbvarname="@student_id" value="#student_profile.student_id#" null="no">
+                 <cfprocresult name="section">
+              </cfstoredproc>
+
+              <cfif section.recordCount EQ 0>
+                <tr>
+                  <td width="6%" align="center" colspan="4">
+                    Subject(s) are already loaded to student.
+                  </td>
+                  <!---<td width="6%" align="center">Load</td>--->
+                </tr>
+                
+              <cfelse>
+              
+              <cfloop query="section">
+                <tr class="<cfif NOT(CurrentRow mod 2)>ltblue</cfif>">
+                  <td width="6.5%" align="center">
+                    <input type="hidden" name="section_offering_#section.section_offering_id#" value="#section.section_offering_id#" />
+                    <input type="checkbox" name="class_id" value="#section.class_id#"/>
+                    <input type="hidden" name="academic_year_id" value="#academic_year_current.academic_year_id#"/>
+                    <cfif student_profile.department_id EQ 2>
+                      <input type="hidden" name="semester_id" value="0"/>
+                    <cfelse>
+                      <input type="hidden" name="semester_id" value="#semester_current.semester_id#"/>
+                    </cfif>
+                  </td>
+                  <td width="10%" align="center">#section.class_code#</td>
+                  <td width="27%" align="left">#section.title#</td>
+                  <td width="10%" align="center">#section.duration_unit#</td>
+                  <!---<td width="6%" align="center">Load</td>--->
+                </tr>
+              </cfloop>
+              </cfif>
+              <cfelse>
+                <tr><td colspan="5" align="center">No Records Found.</td></tr>
+
+              </cfif>
+            </table>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="3"><hr class="hr_div"></td>
+      </tr>
+      <tr>
+        <td colspan="3">
+          <div class="isntruction_div">
+            <p class="head_p">INSTRUCTION:</p>
+            <p class="p_content">1) Click <b>"Load Subject(s)"</b> to remove selected subject.</p>
+            <p class="p_content">2) Click <b>"Cancel"</b> to abort this process</p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="3">&nbsp;</td>
+      </tr>
+      <tr>
+        <td align="center" colspan="3">
+          <input type="submit" style="border:1px solid green; padding:3px 20px; background-color:##609946; 
+    color:##FFFFFF;" value="Load Subject(s)" id="#variables.form_name#_submit" class="form_submit_button" name="load_subject">&nbsp;
+          <input type="button" style="border:1px solid green; padding:3px 20px; background-color:##609946; 
+    color:##FFFFFF;" value="Cancel" id="#variables.form_name#_cancel" name="Cancel" onclick="window.location='#myself##xfa.student_list#'">
+        </td>
+      </tr> --->
+    <!--- </table>
+    </form> --->
+</div>
+
+</cfoutput> 
+</cfprocessingdirective>
+

@@ -1,0 +1,441 @@
+<!--- <cfset semester = event.getValue('semester') />
+<cfset academic_year = event.getValue('academic_year') />
+<cfset period = event.getValue('period') /> --->
+<cfset student = event.getValue('student') />
+
+<cfset variables.form_name = "lw32016_form">
+<cfprocessingdirective suppresswhitespace="Yes"> 
+<cfoutput>
+ <div class="wrapper">
+
+  <div class="module-name">
+    <br>
+  </div>
+
+  <table align="center" width="80%">
+    <tr>
+      <td colspan="2" align="left"><h2>Grades Entry</h2></td>
+    </tr>
+    <tr>
+      <td colspan="4">&nbsp;</td>
+    </tr>
+    <tr>
+      <td>
+        <div style="float:left; width:160px;" class="margt10 margr10 margl10 fs12">
+          <style>
+            li {list-style:none;}
+            .menu img {padding-left:10px; margin-top:10px; margin-bottom:10px;}
+            ul##advisory_menu {padding-left:20px;}
+          </style>
+          <div class="menu">
+            <img src="images/class.gif" width="160" height="230" />
+            <ul id="advisory_menu" style="text-align:left;">
+              <li>Class Code :</strong> #student.class_code#</li>
+              <li>Code :</strong> #student.course_code#</li>
+              <li>Section :</strong> #student.section_label#</li><br />
+                </ul>
+          </div>
+        </div>
+        <div style="float:left; width:20px; height:260px" class="marg10 rcbg"></div>
+        <div style="float:left; margin-top:10px; width:75%;">
+          <div class="res_td" style="float:left;margin-bottom:5px;width:100%">
+            <table width="100%">
+              <tr>
+                <td align="left">
+                  <div class="res_td" style="float:left;margin-bottom:5px;">
+                    <strong> &raquo;Class Student List Result</strong>
+                  </div>
+                </td>
+                <td align="right"><a href="##" onclick="history.go(-1)">&raquo;&nbsp;Go Back</a></td>
+              </tr>
+            </table>
+          </div>
+          <form action="#self#" name="#variables.form_name#" id="#variables.form_name#" method="post" >
+    
+          <input type="hidden" name="class_id" value="#student.class_id#">
+          <input type="hidden" name="form_name" value="#variables.form_name#">
+          <input type="hidden" name="#application.fusebox.fuseactionvariable#" value="#xfa.save_grades#">
+          <table align="center" width="100%" style="margin-top:0px; margin-left:0px;">
+
+            <cfstoredproc procedure="pr_lw3_student_grades_by_class_id_sel" datasource="#request.dsn#">
+    <cfprocparam type="In" cfsqltype="CF_SQL_INTEGER" dbvarname="@class_id" value="#student.class_id#" null="no">
+    <cfprocresult name="student_grades">
+  </cfstoredproc>
+
+            <tr>
+              <th align="center" class="th_data_tbl_head" width="5%" style="vertical-align: middle;">##</th>
+              <th align="center" class="th_data_tbl_head" width="15%" style="vertical-align: middle;">Student No.</th>
+              <th align="center" class="th_data_tbl_head" style="vertical-align: middle;">Name</th>
+              <cfif student.department_id EQ 2>
+                <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">First Grading</th>
+                <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">Second Grading</th>
+                <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">Third Grading</th>
+                <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">Fourth Grading</th>
+              <cfelseif student.department_id EQ 3>
+                <cfif student_grades.n_sem EQ 1>
+                  <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">First</th>
+                  <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">Second</th>
+                <cfelseif student_grades.n_sem EQ 2 >
+                  <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">Third</th>
+                  <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">Fourth</th>
+                <cfelseif student_grades.n_sem EQ 9 >
+                </cfif>
+              <cfelseif student.department_id EQ 1 OR student.department_id EQ 4>
+                <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">Prelim</th>
+                <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">Midterm</th>
+                <th align="center" class="th_data_tbl_head" width="10%" style="vertical-align: middle;">Final</th>
+              </cfif>
+            </tr>
+
+            <cfloop query="student">
+            <input type="hidden" name="student_course_id" value="#student.student_course_id#" />
+            <tr  style="border-bottom: 1px solid ##e6e6e6;">
+              <td align="center">#student.currentrow#.)</td>
+              <td align="center">#student.student_number#</td>
+              <td align="left">&nbsp;&nbsp;#student.lastname#, #student.firstname# #LEFT(student.middlename, 1)#.</td>
+              <td align="center">
+              <cfif student.department_id EQ 3>
+                <cfif student_grades.n_sem EQ 1> 
+                  <cfif student_grades.recordCount EQ 0>
+                    <input type="hidden" name="grading_period_id" value="1">
+                    <input type="hidden" name="student_grade_id" value=""/>
+                    <input type="text" name="first_#student.student_course_id#" maxlength="3" size="3"/>
+                  <cfelse>
+                    <cfloop query="student_grades">
+                    <cfif student_grades.student_id EQ student.student_id>
+                      <cfif student_grades.period_id EQ 1>
+                        <cfif student_grades.grade EQ 50 OR student_grades.grade EQ 0>
+                          <cfif student_grades.statuscode EQ 3401>
+                          <cfelse>
+                            <input type="hidden" name="grading_period_id_#student.student_course_id#" value="1">
+                            <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                            <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                            <input type="text" name="first_#student.student_course_id#" value="" maxlength="3" size="3" class="grade_fld"/>
+                          </cfif>
+                        <cfelse>
+                          <cfif student_grades.statuscode EQ 3401>
+                            #student_grades.grade#
+                          <cfelse>
+                            <input type="hidden" name="grading_period_id_#student.student_course_id#" value="1">
+                            <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                            <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                            <input type="text" name="first_#student.student_course_id#" maxlength="3" size="3" value="#student_grades.grade#" class="grade_fld"/>
+                          </cfif>
+                        </cfif>
+                      </cfif>
+                    </cfif>
+                  </cfloop>
+                </cfif>
+            </td>
+            <td align="center">
+              <cfif student_grades.recordCount EQ 0>
+                <input type="hidden" name="grading_period_id" value="2">
+                <input type="hidden" name="student_grade_id" value=""/>
+                <input type="text" name="second_#student.student_course_id#" maxlength="3" size="3"/>
+              <cfelse>
+                <cfloop query="student_grades">
+                  <cfif student_grades.student_id EQ student.student_id>
+                    <cfif student_grades.period_id EQ 2>
+                      <cfif student_grades.grade EQ 50 OR student_grades.grade EQ 0>
+                        <cfif student_grades.statuscode EQ 3401>
+                        <cfelse>
+                          <input type="hidden" name="grading_period_id_#student.student_course_id#" value="2">
+                          <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                          <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                          <input type="text" name="second_#student.student_course_id#" value="" maxlength="3" size="3" class="grade_fld"/>
+                        </cfif>
+                      <cfelse>
+                        <cfif student_grades.statuscode EQ 3401>
+                          #student_grades.grade#
+                        <cfelse>
+                          <input type="hidden" name="grading_period_id_#student.student_course_id#" value="2">
+                          <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                          <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                          <input type="text" name="second_#student.student_course_id#" maxlength="3" size="3" value="#student_grades.grade#" class="grade_fld"/>
+                        </cfif>
+                      </cfif>
+                    </cfif>
+                  </cfif>
+                </cfloop>
+              </cfif>
+            </td>
+          <cfelseif student_grades.n_sem EQ 2 >
+            <cfif student_grades.recordCount EQ 0>
+              <input type="hidden" name="grading_period_id" value="3">
+              <input type="hidden" name="student_grade_id" value=""/>
+              <input type="text" name="third_#student.student_course_id#" maxlength="3" size="3"/>
+            <cfelse>
+              <cfloop query="student_grades">
+                <cfif student_grades.student_id EQ student.student_id>
+                  <cfif student_grades.period_id EQ 3>
+                    <cfif student_grades.grade EQ 50 OR student_grades.grade EQ 0>
+                      <cfif student_grades.statuscode EQ 3401>
+                      <cfelse>
+                        <input type="hidden" name="grading_period_id_#student.student_course_id#" value="3">
+                        <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                        <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                        <input type="text" name="third_#student.student_course_id#" value="" maxlength="3" size="3" class="grade_fld"/>
+                      </cfif>
+                    <cfelse>
+                      <cfif student_grades.statuscode EQ 3401>
+                        #student_grades.grade#
+                      <cfelse>
+                        <input type="hidden" name="grading_period_id_#student.student_course_id#" value="3">
+                        <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                        <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                        <input type="text" name="third_#student.student_course_id#" maxlength="3" size="3" value="#student_grades.grade#" class="grade_fld"/>
+                      </cfif>
+                    </cfif>
+                  </cfif>
+                </cfif>
+              </cfloop>
+            </cfif>
+          </td>
+          <td align="center">
+            <cfif student_grades.recordCount EQ 0>
+              <input type="hidden" name="grading_period_id" value="4">
+              <input type="hidden" name="student_grade_id" value=""/>
+              <input type="text" name="fourth_#student.student_course_id#" maxlength="3" size="3"/>
+            <cfelse>
+              <cfloop query="student_grades">
+                <cfif student_grades.student_id EQ student.student_id>
+                  <cfif student_grades.period_id EQ 4>
+                    <cfif student_grades.grade EQ 50 OR student_grades.grade EQ 0>
+                      <cfif student_grades.statuscode EQ 3401>
+                      <cfelse>
+                        <input type="hidden" name="grading_period_id_#student.student_course_id#" value="4">
+                        <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                        <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                        <input type="text" name="fourth_#student.student_course_id#" value="" maxlength="3" size="3" class="grade_fld"/>
+                      </cfif>
+                    <cfelse>
+                      <cfif student_grades.statuscode EQ 3401>
+                        #student_grades.grade#
+                      <cfelse>
+                        <input type="hidden" name="grading_period_id_#student.student_course_id#" value="4">
+                        <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                        <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                        <input type="text" name="fourth_#student.student_course_id#" maxlength="3" size="3" value="#student_grades.grade#" class="grade_fld"/>
+                      </cfif>
+                    </cfif>
+                  </cfif>
+                </cfif>
+              </cfloop>
+            </cfif>
+          </td>
+        <cfelseif student_grades.n_sem EQ 9 >
+        </cfif>
+        <cfelseif student.department_id EQ 2><!--- basic education department grades entry start here --->
+          <cfif student_grades.recordCount EQ 0>
+                <input type="hidden" name="grading_period_id" value="5">
+                <input type="hidden" name="student_grade_id" value=""/>
+                <input type="text" name="first_#student.student_course_id#" maxlength="3" size="3"/>
+              <cfelse>
+                <cfloop query="student_grades">
+                  <cfif student_grades.student_id EQ student.student_id>
+                    <cfif student_grades.period_id EQ 5>
+                      <cfif student_grades.course_code EQ 'CC'>
+                        <input type="hidden" name="grading_period_id_#student.student_course_id#" value="5">
+                        <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                        <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                        <input type="hidden" name="first_#student.student_course_id#" value="50" maxlength="3" size="3" class="grade_fld"/>
+                      <cfelse>
+                        <cfif student_grades.grade EQ 50 OR student_grades.grade EQ 0>
+                          <cfif student_grades.statuscode EQ 3401>
+                          <cfelse>
+                            <input type="hidden" name="grading_period_id_#student.student_course_id#" value="5">
+                            <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                            <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                            <input type="text" name="first_#student.student_course_id#" value="" maxlength="3" size="3" class="grade_fld"/>
+                          </cfif>
+                        <cfelse>
+                          <cfif student_grades.statuscode EQ 3401>
+                            #student_grades.grade#
+                          <cfelse>
+                            <input type="hidden" name="grading_period_id_#student.student_course_id#" value="5">
+                            <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                            <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                            <input type="text" name="first_#student.student_course_id#" maxlength="3" size="3" value="#student_grades.grade#" class="grade_fld"/>
+                          </cfif>
+                        </cfif>
+                      </cfif>
+                    </cfif>
+                  </cfif>
+                </cfloop>
+              </cfif>
+          <td>
+          <cfif student_grades.recordCount EQ 0>
+                <input type="hidden" name="grading_period_id" value="6">
+                <input type="hidden" name="student_grade_id" value=""/>
+                <input type="text" name="second_#student.student_course_id#" maxlength="3" size="3"/>
+              <cfelse>
+                <cfloop query="student_grades">
+                  <cfif student_grades.student_id EQ student.student_id>
+                    <cfif student_grades.period_id EQ 6>
+                      <cfif student_grades.course_code EQ 'CC'>
+                        <input type="hidden" name="grading_period_id_#student.student_course_id#" value="6">
+                        <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                        <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                        <input type="hidden" name="second_#student.student_course_id#" value="50" maxlength="3" size="3" class="grade_fld"/>
+                      <cfelse>
+                        <cfif student_grades.grade EQ 50 OR student_grades.grade EQ 0>
+                          <cfif student_grades.statuscode EQ 3401>
+                          <cfelse>
+                            <input type="hidden" name="grading_period_id_#student.student_course_id#" value="6">
+                            <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                            <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                            <input type="text" name="second_#student.student_course_id#" value="" maxlength="3" size="3" class="grade_fld"/>
+                          </cfif>
+                        <cfelse>
+                          <cfif student_grades.statuscode EQ 3401>
+                            #student_grades.grade#
+                          <cfelse>
+                            <input type="hidden" name="grading_period_id_#student.student_course_id#" value="6">
+                            <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                            <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                            <input type="text" name="second_#student.student_course_id#" maxlength="3" size="3" value="#student_grades.grade#" class="grade_fld"/>
+                          </cfif>
+                        </cfif>
+                      </cfif>
+                    </cfif>
+                  </cfif>
+                </cfloop>
+              </cfif>
+            </td>
+            <td>
+          <cfif student_grades.recordCount EQ 0>
+                <input type="hidden" name="grading_period_id" value="7">
+                <input type="hidden" name="student_grade_id" value=""/>
+                <input type="text" name="third_#student.student_course_id#" maxlength="3" size="3"/>
+              <cfelse>
+                <cfloop query="student_grades">
+                  <cfif student_grades.student_id EQ student.student_id>
+                    <cfif student_grades.period_id EQ 7>
+                      <cfif student_grades.course_code EQ 'CC'>
+                        <input type="hidden" name="grading_period_id_#student.student_course_id#" value="7">
+                        <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                        <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                        <input type="hidden" name="third_#student.student_course_id#" value="50" maxlength="3" size="3" class="grade_fld"/>
+                      <cfelse>
+                        <cfif student_grades.grade EQ 50 OR student_grades.grade EQ 0>
+                          <cfif student_grades.statuscode EQ 3401>
+                          <cfelse>
+                            <input type="hidden" name="grading_period_id_#student.student_course_id#" value="7">
+                            <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                            <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                            <input type="text" name="third_#student.student_course_id#" value="" maxlength="3" size="3" class="grade_fld"/>
+                          </cfif>
+                        <cfelse>
+                          <cfif student_grades.statuscode EQ 3401>
+                            #student_grades.grade#
+                          <cfelse>
+                            <input type="hidden" name="grading_period_id_#student.student_course_id#" value="7">
+                            <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                            <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                            <input type="text" name="third_#student.student_course_id#" maxlength="3" size="3" value="#student_grades.grade#" class="grade_fld"/>
+                          </cfif>
+                        </cfif>
+                      </cfif>
+                    </cfif>
+                  </cfif>
+                </cfloop>
+              </cfif>
+            </td>
+            <td>
+            <cfif student_grades.recordCount EQ 0>
+                <input type="hidden" name="grading_period_id" value="8">
+                <input type="hidden" name="student_grade_id" value=""/>
+                <input type="text" name="fourth_#student.student_course_id#" maxlength="3" size="3"/>
+              <cfelse>
+                <cfloop query="student_grades">
+                  <cfif student_grades.student_id EQ student.student_id>
+                    <cfif student_grades.period_id EQ 8>
+                        <cfif student_grades.grade EQ 50 OR student_grades.grade EQ 0>
+                          <cfif student_grades.statuscode EQ 3401>
+                          <cfelse>
+                            <input type="hidden" name="grading_period_id_#student.student_course_id#" value="8">
+                            <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                            <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                            <input type="text" name="fourth_#student.student_course_id#" value="" maxlength="3" size="3" class="grade_fld"/>
+                          </cfif>
+                        <cfelse>
+                          <cfif student_grades.statuscode EQ 3401>
+                            #student_grades.grade#
+                          <cfelse>
+                            <input type="hidden" name="grading_period_id_#student.student_course_id#" value="8">
+                            <input type="hidden" name="course_grade_id_#student_grades.student_course_grade_id#" value="#student_grades.student_course_grade_id#">
+                            <input type="hidden" name="student_grade_id" value="#student_grades.student_course_grade_id#"/>
+                            <input type="text" name="fourth_#student.student_course_id#" maxlength="3" size="3" value="#student_grades.grade#" class="grade_fld"/>
+                          </cfif>
+                        </cfif>
+                    </cfif>
+                  </cfif>
+                </cfloop>
+              </cfif>
+            </td>
+          </cfif>
+          </tr>
+        </cfloop>
+         <!--- Footer here --->
+        <cfif student.department_id EQ 3 >
+            <cfif student_grades.statuscode EQ 3400>
+              <tr>
+                <td colspan="8"><hr class="hr_div"></td>
+              </tr>
+              <tr>
+                <td colspan="8" align="center">
+                  <div class="isntruction_div">
+                    <p class="head_p">INSTRUCTION:</p>
+                    <p class="p_content">1) Click <b>"Submit Grades"</b> to save changes.</p>
+                    <p class="p_content">2) Click <b>"Cancel"</b> to abort this process</p>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="8"><hr class="hr_div"></td>
+              </tr>
+              <tr>
+                <td colspan="8">
+                  <input type="submit" style="border:1px solid green; padding:3px 20px; background-color:##609946; 
+        color:##FFFFFF;" value="Submit Grades" id="#variables.form_name#_submit" class="form_submit_button">
+                  <input type="button" style="border:1px solid green; padding:3px 20px; background-color:##609946; 
+          color:##FFFFFF;" value="Cancel" id="#variables.form_name#_cancel" name="Cancel" onclick="window.location='#myself##xfa.grades_entry#'">
+                </td>
+              </tr>
+            </cfif>
+        <cfelseif student.department_id EQ 2>
+            <cfif student_grades.statuscode EQ 3400>
+              <tr>
+                <td colspan="8"><hr class="hr_div"></td>
+              </tr>
+              <tr>
+                <td colspan="8" align="center">
+                  <div class="isntruction_div">
+                    <p class="head_p">INSTRUCTION:</p>
+                    <p class="p_content">1) Click <b>"Submit Grades"</b> to save changes.</p>
+                    <p class="p_content">2) Click <b>"Cancel"</b> to abort this process</p>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="8"><hr class="hr_div"></td>
+              </tr>
+              <tr>
+                <td colspan="8">
+                  <input type="submit" style="border:1px solid green; padding:3px 20px; background-color:##609946; 
+        color:##FFFFFF;" value="Submit Grades" id="#variables.form_name#_submit" class="form_submit_button">
+                  <input type="button" style="border:1px solid green; padding:3px 20px; background-color:##609946; 
+          color:##FFFFFF;" value="Cancel" id="#variables.form_name#_cancel" name="Cancel" onclick="window.location='#myself##xfa.grades_entry#'">
+                </td>
+              </tr>
+            </cfif>
+        </cfif>
+          </table>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>               
+</cfoutput> 
+</cfprocessingdirective>
+

@@ -1,0 +1,145 @@
+<cffunction name="save_grades">
+		<cfargument name="myFusebox" />
+		<cfargument name="event" />
+		<cfset var local = StructNew() />
+		<cfset local.class_id = event.getValue('class_id', 0) />
+	  <cfset local.action = event.getValue('action') />
+		<cfif application.AccountSessionManager.IsLoggedIn()>
+		<cfset local.class_list = application.Class.GetStudentListByClassId(local.class_id) />
+		<cfloop query="local.class_list">
+			<cfif local.class_list.department_id EQ 3>
+					<cfif local.class_list.n_sem EQ 1>
+						<cfif local.class_list.period_id EQ 1>
+							<cfif local.class_list.period_id EQ 1>
+								<cfset local.grading_period_id = 1 />
+								<cfif FORM["first_" & local.class_list.student_course_id] EQ ''>
+									<cfset local.grade = 50 />
+								<cfelse>
+									<cfset local.grade = FORM["first_" & local.class_list.student_course_id] />
+								</cfif>
+								<cfset local.course_grade_id = FORM["course_grade_id_" & local.class_list.student_course_grade_id] />
+								<cfset application.Grade.UpdateGrade(local.course_grade_id,local.grade) />
+								<cfset local.log = "Update table student_course_grade(account_id=" & #request.session.account.account_id# & ", period=1, course_grade_id=" & #local.course_grade_id# & ", grade=" & #local.grade# & ")" />
+								<cfset application.Log.NewLog(request.session.account.account_id, local.log) />
+							</cfif>
+						</cfif>
+						<cfif local.class_list.period_id EQ 2>
+							<cfif local.class_list.period_id EQ 2>
+								<cfset local.grading_period_id = 2 />
+								<cfif FORM["second_" & local.class_list.student_course_id] EQ ''>
+									<cfset local.grade = 50 />
+								<cfelse>
+									<cfset local.grade = FORM["second_" & local.class_list.student_course_id] />
+								</cfif>
+								<cfset local.course_grade_id = FORM["course_grade_id_" & local.class_list.student_course_grade_id] />
+								<cfset application.Grade.UpdateGrade(local.course_grade_id,local.grade) />
+								<cfset local.log = "Update table student_course_grade(account_id=" & #request.session.account.account_id# & ", period=2, course_grade_id=" & #local.course_grade_id# & ", grade=" & #local.grade# & ")" />
+								<cfset application.Log.NewLog(request.session.account.account_id, local.log) />
+							</cfif>
+						</cfif>
+					<cfelseif local.class_list.n_sem EQ 2>
+						<cfif local.class_list.statuscode EQ 3400>
+							<cfif local.class_list.period_id Eq 3>
+								<cfset local.grading_period_id = 3 />
+								<cfif FORM["third_" & local.class_list.student_course_id] EQ ''>
+									<cfset local.grade = 50 />
+								<cfelse>
+									<cfset local.grade = FORM["third_" & local.class_list.student_course_id] />
+								</cfif>
+								<cfset local.course_grade_id = FORM["course_grade_id_" & local.class_list.student_course_grade_id] />
+								<cfset application.Grade.UpdateGrade(local.course_grade_id,local.grade) />
+								<cfset local.log = "Update table student_course_grade(account_id=" & #request.session.account.account_id# & ", period=3, course_grade_id=" & #local.course_grade_id# & ", grade=" & #local.grade# & ")" />
+								<cfset application.Log.NewLog(request.session.account.account_id, local.log) />
+							</cfif>
+						</cfif>
+						<cfif local.class_list.statuscode EQ 3400>
+							<cfif local.class_list.period_id Eq 4>
+								<cfset local.grading_period_id = 4 />
+								<cfif FORM["fourth_" & local.class_list.student_course_id] EQ ''>
+									<cfset local.grade = 50 />
+								<cfelse>
+									<cfset local.grade = FORM["fourth_" & local.class_list.student_course_id] />
+								</cfif>
+								<cfset local.course_grade_id = FORM["course_grade_id_" & local.class_list.student_course_grade_id] />
+								<cfset application.Grade.UpdateGrade(local.course_grade_id,local.grade) />
+								<cfset local.log = "Update table student_course_grade(account_id=" & #request.session.account.account_id# & ", period=4, course_grade_id=" & #local.course_grade_id# & ", grade=" & #local.grade# & ")" />
+								<cfset application.Log.NewLog(request.session.account.account_id, local.log) />
+							</cfif>
+						</cfif>
+					</cfif>
+			<cfelseif  local.class_list.department_id EQ 2>
+				<cfif local.class_list.statuscode EQ 3400>
+					<cfif local.class_list.period_id EQ 5>
+						<cfset local.grading_period_id = 5 />
+						<cfif FORM["first_" & local.class_list.student_course_id] EQ ''>
+							<cfset local.grade = 50 />
+						<cfelse>
+							<cfset local.grade = FORM["first_" & local.class_list.student_course_id] />
+						</cfif>
+						<cfset local.course_grade_id = FORM["course_grade_id_" & local.class_list.student_course_grade_id] />
+						<cfset application.Grade.UpdateGrade(local.course_grade_id,local.grade) />
+						<cfset local.log = "Update table student_course_grade(account_id=" & #request.session.account.account_id# & ", period=4, course_grade_id=" & #local.course_grade_id# & ", grade=" & #local.grade# & ")" />
+						<cfset application.Log.NewLog(request.session.account.account_id, local.log) />
+					</cfif>
+				</cfif>
+				<cfif local.class_list.statuscode EQ 3400>
+					<cfif local.class_list.period_id EQ 6>
+						<cfset local.grading_period_id = 6 />
+						<cfif FORM["second_" & local.class_list.student_course_id] EQ ''>
+							<cfset local.grade = 50 />
+						<cfelse>
+							<cfset local.grade = FORM["second_" & local.class_list.student_course_id] />
+						</cfif>
+						<cfset local.course_grade_id = FORM["course_grade_id_" & local.class_list.student_course_grade_id] />
+						<cfset application.Grade.UpdateGrade(local.course_grade_id,local.grade) />
+						<cfset local.log = "Update table student_course_grade(account_id=" & #request.session.account.account_id# & ", period=4, course_grade_id=" & #local.course_grade_id# & ", grade=" & #local.grade# & ")" />
+						<cfset application.Log.NewLog(request.session.account.account_id, local.log) />
+					</cfif>
+				</cfif>
+				<cfif local.class_list.statuscode EQ 3400>
+					<cfif local.class_list.period_id EQ 7>
+						<cfset local.grading_period_id = 7 />
+						<cfif FORM["third_" & local.class_list.student_course_id] EQ ''>
+							<cfset local.grade = 50 />
+						<cfelse>
+							<cfset local.grade = FORM["third_" & local.class_list.student_course_id] />
+						</cfif>
+						<cfset local.course_grade_id = FORM["course_grade_id_" & local.class_list.student_course_grade_id] />
+						<cfset application.Grade.UpdateGrade(local.course_grade_id,local.grade) />
+						<cfset local.log = "Update table student_course_grade(account_id=" & #request.session.account.account_id# & ", period=4, course_grade_id=" & #local.course_grade_id# & ", grade=" & #local.grade# & ")" />
+						<cfset application.Log.NewLog(request.session.account.account_id, local.log) />
+					</cfif>
+				</cfif>
+				<cfif local.class_list.statuscode EQ 3400>
+					<cfif local.class_list.period_id EQ 8>
+						<cfset local.grading_period_id = 8 />
+						<cfif FORM["fourth_" & local.class_list.student_course_id] EQ ''>
+							<cfset local.grade = 50 />
+						<cfelse>
+							<cfset local.grade = FORM["fourth_" & local.class_list.student_course_id] />
+						</cfif>
+						<cfset local.course_grade_id = FORM["course_grade_id_" & local.class_list.student_course_grade_id] />
+						<cfset application.Grade.UpdateGrade(local.course_grade_id,local.grade) />
+						<cfset local.log = "Update table student_course_grade(account_id=" & #request.session.account.account_id# & ", period=4, course_grade_id=" & #local.course_grade_id# & ", grade=" & #local.grade# & ")" />
+						<cfset application.Log.NewLog(request.session.account.account_id, local.log) />
+					</cfif>
+				</cfif>
+			</cfif>
+		</cfloop>
+
+		<cfset local.class = application.Class.GetClassById(local.class_id) />
+		<cfloop query="local.class">
+			<cfif local.class.department_id EQ 3>
+			</cfif>
+		</cfloop>
+
+		<cfset event.xfa("success_action", "class.class_list") />
+		<cfset event.setvalue('link_name', "Choose another class list") />
+		<cfset event.setvalue('variable_name', "w_message") />
+		<cfset event.setvalue('message', "SUCCESS! Student Grades submitted successfully!") />
+		<cfset myFusebox.do(action="display.dsp_ajax_success_redir", contentvariable="body") />
+	  <cfelse>
+			<cfset event.xfa("login", "login.login") />
+			<cfset myFusebox.relocate(xfa="login") />
+		</cfif>
+	</cffunction>
