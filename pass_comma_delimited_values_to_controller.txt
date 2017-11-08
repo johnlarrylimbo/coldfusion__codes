@@ -1,0 +1,6 @@
+<cfset curriculum_detail_array = arrayNew(1) />
+			<cfset arrayAppend(curriculum_detail_array, event.getvalue('curriculum_detail_id')) />
+			<cfset curriculum_detail_list = ArrayToList(curriculum_detail_array, ",")>
+			<cfloop list="#curriculum_detail_list#" index="list">
+				<cfdump var="#list#" />
+			</cfloop>
