@@ -1,0 +1,4 @@
+<cfset student_pre_evaluated_course = ValueList(pre_evaluated_course.curriculum_detail_id)> 
+
+
+<input type="checkbox" name="curriculum_detail_id" value="#result.curriculum_detail_id#"<cfif listContains(student_pre_evaluated_course, result.curriculum_detail_id)>checked</cfif>/>
